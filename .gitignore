@@ -416,3 +416,8 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+
+
+!**/Libraries/**/lib/x64/
+!**/Libraries/**/lib/x86/
