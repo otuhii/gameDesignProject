@@ -1,0 +1,21 @@
+grid based map
+
+two players
+
+players are playing cards on each turn
+
+you have some amount of cards in your hands and energy as resource
+for playing those cards so you can do some combination of them
+
+
+
+
+
+THINK ABOUT:
+	can players see each other's card????
+
+
+
+TODO:
+	card mechanic
+	grid movement
