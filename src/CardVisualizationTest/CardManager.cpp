@@ -46,26 +46,61 @@ CardManager::~CardManager()
 
 void CardManager::DrawCards() const
 {
-
 	for (int index = 0; index < m_MaximumCardNumber; ++index)
 	{
 		glPushMatrix();
 		{
-			Vector2f cardPos{ m_pCards[index]->GetCardPosition() };
+			if (Card::GetHoveredCard() != index)
+			{
+				Vector2f cardPos{ m_pCards[index]->GetCardPosition() };
 
-			glTranslatef(Card::GetCardDimensions().x * 0.5f, Card::GetCardDimensions().y * 0.5f, 0.f);
-			glTranslatef(m_DrawPos.x+cardPos.x, m_DrawPos.y+cardPos.y, 0.f);
-			glRotatef(m_pCards[index]->GetRotationAngle(), 0.f, 0.f, 1.f);
-			glTranslatef(-Card::GetCardDimensions().x * 0.5f, -Card::GetCardDimensions().y * 0.5f, 0.f);
+				glTranslatef(Card::GetCardDimensions().x * 0.5f, Card::GetCardDimensions().y * 0.5f, 0.f);
+				glTranslatef(m_DrawPos.x + cardPos.x, m_DrawPos.y + cardPos.y, 0.f);
+				glRotatef(m_pCards[index]->GetRotationAngle(), 0.f, 0.f, 1.f);
+				glTranslatef(-Card::GetCardDimensions().x * 0.5f, -Card::GetCardDimensions().y * 0.5f, 0.f);
 
-			utils::SetColor(Color4f{ 1.f, 0.f, 0.f, 1.f });
-			utils::FillRect(Vector2f{0.f, 0.f}, Card::GetCardDimensions().x, Card::GetCardDimensions().y);
+				utils::SetColor(Color4f{ 1.f, 0.f, 0.f, 1.f });
+				utils::FillRect(Vector2f{ 0.f, 0.f }, Card::GetCardDimensions().x, Card::GetCardDimensions().y);
 
-			utils::SetColor(Color4f{ 0.f, 0.f, 0.f, 1.f });
-			utils::DrawRect(Vector2f{0.f, 0.f}, Card::GetCardDimensions().x, Card::GetCardDimensions().y, 2.f);
-
+				utils::SetColor(Color4f{ 0.f, 0.f, 0.f, 1.f });
+				utils::DrawRect(Vector2f{ 0.f, 0.f }, Card::GetCardDimensions().x, Card::GetCardDimensions().y, 2.f);
+			}
 		}
 		glPopMatrix();
+
+
+		
+		//drawing hovered card on top of every other card
+		if (index == m_MaximumCardNumber - 1)
+		{
+			if (Card::GetHoveredCard() != -1)
+			{
+				glPushMatrix();
+				{
+					const float
+						hoveredOffset{ 40.f };
+					const Vector2f
+						cardPos{ m_pCards[Card::GetHoveredCard()]->GetCardPosition() };
+
+					glTranslatef(Card::GetCardDimensions().x * 0.5f, Card::GetCardDimensions().y * 0.5f, 0.f);
+					glTranslatef(m_DrawPos.x + cardPos.x, m_DrawPos.y + cardPos.y + hoveredOffset, 0.f);
+					glScalef(1.5f, 1.5f, 1.f);
+					glTranslatef(-Card::GetCardDimensions().x * 0.5f, -Card::GetCardDimensions().y * 0.5f, 0.f);
+
+					//////SHADDDOWW
+					utils::SetColor(Color4f{ 0.f, 0.f, 0.f, 0.4f });
+					utils::FillRect(Vector2f{ 0.12f * Card::GetCardDimensions().x, -0.12f * Card::GetCardDimensions().y }, Card::GetCardDimensions().x, Card::GetCardDimensions().y);
+					//////////
+
+					utils::SetColor(Color4f{ 1.f, 0.f, 0.f, 1.f });
+					utils::FillRect(Vector2f{ 0.f, 0.f }, Card::GetCardDimensions().x, Card::GetCardDimensions().y);
+
+					utils::SetColor(Color4f{ 0.f, 0.f, 0.f, 1.f });
+					utils::DrawRect(Vector2f{ 0.f, 0.f }, Card::GetCardDimensions().x, Card::GetCardDimensions().y, 2.f);
+				}
+				glPopMatrix();
+			}
+		}
 	}
 }
 
@@ -77,8 +112,7 @@ void CardManager::CardHoveringHandle(const Vector2f& mousePosition) const
 		{
 			if (IsPointInCard(mousePosition, m_pCards[index]->GetCardPosition(), m_pCards[index]->GetRotationAngle()))
 			{
-				system("CLS");
-				std::cout << "YOU HIT " << index << " CARD" << std::endl; //TODO card hover animation
+				Card::SetHoveredCard(index);
 				break;
 			}
 		}

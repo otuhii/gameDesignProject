@@ -2,6 +2,7 @@
 #include "Card.h"
 
 const Vector2f Card::m_CardDimensions{ 60.f, 100.f };
+int Card::m_HoveredCard{ -1 };
 
 Card::Card(const Vector2f& cardPos, float angle)
     : m_Position{ cardPos }, m_RotationAngle(angle), m_Type{}
@@ -40,6 +41,16 @@ Rectf Card::GetCardBounds() const
         m_CardDimensions.x,
         m_CardDimensions.y
     };
+}
+
+void Card::SetHoveredCard(int index)
+{
+    m_HoveredCard = index;
+}
+
+const int Card::GetHoveredCard()
+{
+    return m_HoveredCard;
 }
 
 const Vector2f& Card::GetCardDimensions()

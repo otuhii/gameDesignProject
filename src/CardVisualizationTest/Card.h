@@ -16,15 +16,21 @@ public:
 
 	void SetPosition(const Vector2f& newPos);
 	void SetRotationAngle(float angle);
+	
 
 	CardType				GetCardType()		const;
 	const Vector2f&			GetCardPosition()	const;
 	float					GetRotationAngle()	const;
 	Rectf					GetCardBounds()		const;	
+
+	static void				SetHoveredCard(int index);
+
+	static const int		GetHoveredCard();
 	static const Vector2f&	GetCardDimensions();
 
 private:
 	static const Vector2f m_CardDimensions;
+	static int m_HoveredCard;
 
 	CardType m_Type;
 
