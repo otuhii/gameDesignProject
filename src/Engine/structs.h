@@ -13,7 +13,14 @@ struct Window
 	bool isVSyncOn;
 };
 
+struct Vector2i
+{
+	Vector2i();
+	explicit Vector2i(int x, int y);
 
+	int x;
+	int y;
+};
 
 struct Rectf
 {

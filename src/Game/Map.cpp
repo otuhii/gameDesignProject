@@ -1,8 +1,11 @@
 #include "pch.h"
-#include "Map.h"
 #include "utils.h"
 
-Map::Map()
+#include "Map.h"
+#include "Card.h"
+
+Map::Map(const Rectf& mapBounds)
+	:m_MapBounds(mapBounds)
 {
 	for (int row{ 0 }; row < m_MapDimension; ++row)
 	{
@@ -30,11 +33,11 @@ Map::~Map()
 	}
 }
 
-void Map::Draw(const Rectf& viewport) const
+void Map::Draw(bool debug) const
 {
 	const float
-		cellWidth{ viewport.width / m_MapDimension },
-		cellHeight{ viewport.height / m_MapDimension },
+		cellWidth{ m_MapBounds.width / m_MapDimension },
+		cellHeight{ m_MapBounds.height / m_MapDimension },
 
 		squizeBy{ 5.f };
 
@@ -56,22 +59,22 @@ void Map::Draw(const Rectf& viewport) const
 			}
 
 			utils::FillRect(Rectf{
-				column*cellWidth+squizeBy,
-				row * cellHeight+squizeBy,
+				m_MapBounds.left+column*cellWidth+squizeBy,
+				m_MapBounds.bottom+row * cellHeight+squizeBy,
 				cellWidth-squizeBy,
 				cellHeight-squizeBy
 				});
 		}
 	}
 
+	if (debug)
+	{
+		utils::DrawRect(m_MapBounds, 5.f);
+	}
+
 }
 
-void Map::PlaceTrap()
-{
-
-}
-
-bool Map::IsBombPlacedOnCell(int index) const
+bool Map::IsTrapPlacedOnCell(int index) const
 {
 	const int
 		row{ RowFromIndex(index) },
@@ -90,6 +93,37 @@ bool Map::IsWallPlacedOnCell(int index) const
 	return m_pMap[row][column]->IsWallPlaced();
 }
 
+void Map::ProcessMapClick(Player* player, const Vector2f& clickPos)
+{
+	const Card*
+		playersCard{ player->GetPickedCard() };
+
+	if (utils::IsPointInRect(clickPos, m_MapBounds))
+	{
+		if (playersCard != nullptr)
+		{
+			if (playersCard->GetCardType() == Card::CardType::trapCard)
+			{
+				PlaceTrap(GlobalToLocalPosition(clickPos));
+			}
+		}
+		else
+		{
+			PlaceWall(GlobalToLocalPosition(clickPos));
+		}
+	}
+}
+
+void Map::PlaceTrap(const Vector2i& position)
+{
+	m_pMap[position.y][position.x]->PlaceTrap();
+}
+
+void Map::PlaceWall(const Vector2i& position)
+{
+	m_pMap[position.y][position.x]->PlaceWall();
+}
+
 int Map::RowFromIndex(int index) const
 {
 	return index/m_MapDimension;
@@ -100,7 +134,28 @@ int Map::ColumnFromIndex(int index) const
 	return index % m_MapDimension;
 }
 
+Vector2i Map::GlobalToLocalPosition(const Vector2f& globalPosition) const
+{
+	const float
+		cellWidth{ m_MapBounds.width / m_MapDimension },
+		cellHeight{ m_MapBounds.height / m_MapDimension };
 
+	const Vector2f globalPositionStartsFromZero{
+		globalPosition.x - m_MapBounds.left,
+		globalPosition.y - m_MapBounds.bottom
+	};
+
+	
+	int
+		col{ static_cast<int>(globalPositionStartsFromZero.x / cellWidth) },
+		row{ static_cast<int>(globalPositionStartsFromZero.y / cellHeight) };
+
+	//safety 
+	col = std::max(0, std::min(col, m_MapDimension - 1));
+	row = std::max(0, std::min(row, m_MapDimension - 1));
+
+	return Vector2i{ col, row };
+}
 
 
 #pragma region CELL_DEFINITIONS
@@ -120,5 +175,14 @@ bool Map::Cell::IsWallPlaced() const
 	return (m_State == Cell::CellState::wallPlaced);
 }
 
+void Map::Cell::PlaceTrap()
+{
+	m_State = CellState::trapPlaced;
+}
+
+void Map::Cell::PlaceWall()
+{
+	m_State = CellState::wallPlaced;
+}
 
 #pragma endregion CELL_DEFINITIONS

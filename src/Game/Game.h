@@ -32,6 +32,9 @@ private:
 	void Cleanup( );
 	void ClearBackground( ) const;
 
+	static const float
+		m_MapDimensions;
+
 	static const int
 		m_PlayerCount{ 2 };
 

@@ -3,6 +3,8 @@
 #include "Map.h"
 #include "Player.h"
 
+const float Game::m_MapDimensions{ 720.f };
+
 Game::Game( const Window& window ) 
 	:BaseGame{ window }
 {
@@ -16,10 +18,19 @@ Game::~Game( )
 
 void Game::Initialize( )
 {
-	m_pMap = new Map{};
+	const Rectf viewport{ GetViewPort() };
 
-	m_Players[0] = new Player{};
-	m_Players[1] = new Player{};
+	const Vector2f pos{
+		(viewport.width-m_MapDimensions)*0.5f,
+		(viewport.height-m_MapDimensions)*0.5f
+	};
+
+	m_pMap = new Map{ Rectf{pos.x, pos.y*2, m_MapDimensions, m_MapDimensions} };
+
+
+
+	m_Players[0] = new Player{1, 0};
+	m_Players[1] = new Player{5, 0};
 }
 
 void Game::Cleanup( )
@@ -47,7 +58,7 @@ void Game::Draw( ) const
 {
 	ClearBackground( );
 
-	m_pMap->Draw(GetViewPort());
+	m_pMap->Draw(false);
 }
 
 void Game::ProcessKeyDownEvent( const SDL_KeyboardEvent & e )
@@ -71,6 +82,7 @@ void Game::ProcessKeyUpEvent( const SDL_KeyboardEvent& e )
 	//	//std::cout << "Key 1 released\n";
 	//	break;
 	//}
+	
 }
 
 void Game::ProcessMouseMotionEvent( const SDL_MouseMotionEvent& e )
@@ -98,19 +110,12 @@ void Game::ProcessMouseDownEvent( const SDL_MouseButtonEvent& e )
 
 void Game::ProcessMouseUpEvent( const SDL_MouseButtonEvent& e )
 {
-	//std::cout << "MOUSEBUTTONUP event: ";
-	//switch ( e.button )
-	//{
-	//case SDL_BUTTON_LEFT:
-	//	std::cout << " left button " << std::endl;
-	//	break;
-	//case SDL_BUTTON_RIGHT:
-	//	std::cout << " right button " << std::endl;
-	//	break;
-	//case SDL_BUTTON_MIDDLE:
-	//	std::cout << " middle button " << std::endl;
-	//	break;
-	//}
+	switch ( e.button )
+	{
+	case SDL_BUTTON_LEFT:
+		m_pMap->ProcessMapClick(m_Players[0], Vector2f{ static_cast<float>(e.x), static_cast<float>(e.y) });
+		break;
+	}
 }
 
 void Game::ClearBackground( ) const
