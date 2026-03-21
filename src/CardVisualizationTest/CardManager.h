@@ -25,5 +25,6 @@ private:
 
 	void RecalculateCardPosition();
 
+	bool IsPointInCard(const Vector2f& mousePos, const Vector2f& cardPos, float angle) const;
 };
 

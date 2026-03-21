@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Game.h"
 #include "CardManager.h"
+#include "utils.h"
 
 Game::Game( const Window& window ) 
 	:BaseGame{ window }
@@ -41,6 +42,9 @@ void Game::Draw( ) const
 {
 	ClearBackground( );
 
+	utils::SetColor(Color4f{ 1.f, 1.f, 1.f, 1.f });
+	utils::FillRect(GetViewPort());
+
 	m_Cards->DrawCards();
 }
 
@@ -61,6 +65,7 @@ void Game::ProcessKeyUpEvent( const SDL_KeyboardEvent& e )
 
 void Game::ProcessMouseMotionEvent( const SDL_MouseMotionEvent& e )
 {
+	m_Cards->CardHoveringHandle(Vector2f{ static_cast<float>(e.x), static_cast<float>(e.y) });
 }
 
 void Game::ProcessMouseDownEvent( const SDL_MouseButtonEvent& e )
@@ -86,6 +91,7 @@ void Game::ProcessMouseUpEvent( const SDL_MouseButtonEvent& e )
 	switch ( e.button )
 	{
 	case SDL_BUTTON_LEFT:
+		
 		break;
 	}
 }
