@@ -96,22 +96,65 @@ bool Map::IsWallPlacedOnCell(int index) const
 void Map::ProcessMapClick(Player* player, const Vector2f& clickPos)
 {
 	const Card*
-		playersCard{ player->GetPickedCard() };
-
-	if (utils::IsPointInRect(clickPos, m_MapBounds))
+		playersCard{ nullptr }; /////TODO CHANGE THIS because i remove function that return card
+	//TODO fix card hovering after first deletion of card
+	
+	if (playersCard != nullptr)
 	{
-		if (playersCard != nullptr)
+		if (playersCard->GetCardType() == Card::CardType::trapCard)
 		{
-			if (playersCard->GetCardType() == Card::CardType::trapCard)
-			{
-				PlaceTrap(GlobalToLocalPosition(clickPos));
-			}
-		}
-		else
-		{
-			PlaceWall(GlobalToLocalPosition(clickPos));
+			PlaceTrap(GlobalToLocalPosition(m_MapBounds, clickPos));
 		}
 	}
+	else
+	{
+		PlaceWall(GlobalToLocalPosition(m_MapBounds, clickPos));
+	}
+}
+
+Rectf Map::GetMapBounds() const
+{
+	return m_MapBounds;
+}
+
+Vector2f Map::LocalToGlobalPosition(const Rectf& mapSize, const Vector2i& mapPos)
+{
+	const float
+		cellWidth{ mapSize.width / m_MapDimension },
+		cellHeight{ mapSize.height / m_MapDimension };
+
+	float
+		x{ mapPos.x * cellWidth + mapSize.left },
+		y{ mapPos.y * cellHeight + mapSize.bottom };
+
+	return Vector2f{ x, y };
+}
+
+int Map::GetDimensions()
+{
+	return m_MapDimension;
+}
+
+Vector2i Map::GlobalToLocalPosition(const Rectf& mapSize, const Vector2f& globalPosition)
+{
+	const float
+		cellWidth{ mapSize.width / m_MapDimension },
+		cellHeight{ mapSize.height / m_MapDimension };
+
+	const Vector2f globalPositionStartsFromZero{
+		globalPosition.x - mapSize.left,
+		globalPosition.y - mapSize.bottom
+	};
+
+	int
+		col{ static_cast<int>(globalPositionStartsFromZero.x / cellWidth) },
+		row{ static_cast<int>(globalPositionStartsFromZero.y / cellHeight) };
+
+	//safety 
+	col = std::max(0, std::min(col, m_MapDimension - 1));
+	row = std::max(0, std::min(row, m_MapDimension - 1));
+
+	return Vector2i{ col, row };
 }
 
 void Map::PlaceTrap(const Vector2i& position)
@@ -134,28 +177,7 @@ int Map::ColumnFromIndex(int index) const
 	return index % m_MapDimension;
 }
 
-Vector2i Map::GlobalToLocalPosition(const Vector2f& globalPosition) const
-{
-	const float
-		cellWidth{ m_MapBounds.width / m_MapDimension },
-		cellHeight{ m_MapBounds.height / m_MapDimension };
 
-	const Vector2f globalPositionStartsFromZero{
-		globalPosition.x - m_MapBounds.left,
-		globalPosition.y - m_MapBounds.bottom
-	};
-
-	
-	int
-		col{ static_cast<int>(globalPositionStartsFromZero.x / cellWidth) },
-		row{ static_cast<int>(globalPositionStartsFromZero.y / cellHeight) };
-
-	//safety 
-	col = std::max(0, std::min(col, m_MapDimension - 1));
-	row = std::max(0, std::min(row, m_MapDimension - 1));
-
-	return Vector2i{ col, row };
-}
 
 
 #pragma region CELL_DEFINITIONS

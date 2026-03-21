@@ -1,7 +1,6 @@
 #pragma once
 #include "Player.h"
 
-
 class Map final
 {
 public:
@@ -15,6 +14,13 @@ public:
 	bool IsWallPlacedOnCell(int index) const;
 
 	void ProcessMapClick(Player* player, const Vector2f& clickPos);
+	
+	Rectf GetMapBounds() const;
+
+	static Vector2i GlobalToLocalPosition(const Rectf& mapSize, const Vector2f& globalPosition);
+	static Vector2f LocalToGlobalPosition(const Rectf& mapSize, const Vector2i& mapPos);
+	static int		GetDimensions();
+	
 private:
 	class Cell {
 	public:
@@ -48,7 +54,5 @@ private:
 
 	int RowFromIndex(int index) const;
 	int ColumnFromIndex(int index) const;
-
-	Vector2i GlobalToLocalPosition(const Vector2f& globalPosition) const;
 };
 

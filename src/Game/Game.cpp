@@ -2,6 +2,7 @@
 #include "Game.h"
 #include "Map.h"
 #include "Player.h"
+#include "utils.h"
 
 const float Game::m_MapDimensions{ 720.f };
 
@@ -27,10 +28,8 @@ void Game::Initialize( )
 
 	m_pMap = new Map{ Rectf{pos.x, pos.y*2, m_MapDimensions, m_MapDimensions} };
 
-
-
-	m_Players[0] = new Player{1, 0};
-	m_Players[1] = new Player{5, 0};
+	m_Players[0] = new Player{1, 0, "firstPlayerSprite.png"};
+	m_Players[1] = new Player{5, 0, "secondPlayerSprite.png"};
 }
 
 void Game::Cleanup( )
@@ -59,6 +58,8 @@ void Game::Draw( ) const
 	ClearBackground( );
 
 	m_pMap->Draw(false);
+	m_Players[0]->DrawCards();
+	m_Players[0]->Draw(m_pMap->GetMapBounds());
 }
 
 void Game::ProcessKeyDownEvent( const SDL_KeyboardEvent & e )
@@ -87,7 +88,7 @@ void Game::ProcessKeyUpEvent( const SDL_KeyboardEvent& e )
 
 void Game::ProcessMouseMotionEvent( const SDL_MouseMotionEvent& e )
 {
-	//std::cout << "MOUSEMOTION event: " << e.x << ", " << e.y << std::endl;
+	m_Players[0]->HoverCards(Vector2f{ static_cast<float>(e.x), static_cast<float>(e.y) });
 }
 
 void Game::ProcessMouseDownEvent( const SDL_MouseButtonEvent& e )
@@ -113,7 +114,11 @@ void Game::ProcessMouseUpEvent( const SDL_MouseButtonEvent& e )
 	switch ( e.button )
 	{
 	case SDL_BUTTON_LEFT:
-		m_pMap->ProcessMapClick(m_Players[0], Vector2f{ static_cast<float>(e.x), static_cast<float>(e.y) });
+		if (utils::IsPointInRect(Vector2f{static_cast<float>(e.x), static_cast<float>(e.y)}, m_pMap->GetMapBounds()))
+		{
+			m_pMap->ProcessMapClick(m_Players[0], Vector2f{ static_cast<float>(e.x), static_cast<float>(e.y) });
+		}
+		m_Players[0]->ProcessHoveredCardClick();
 		break;
 	}
 }

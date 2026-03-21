@@ -1,25 +1,54 @@
 #include "pch.h"
 #include "Player.h"
-#include "Card.h"
+#include "CardManager.h"
+#include "Texture.h"
+#include "Map.h"
+#include "utils.h"
 
-
-Player::Player(int posX, int posY)
+Player::Player(int posX, int posY, const std::string texturePath)
+	: m_MapPosition(posX, posY)
 {
 	// TODO: randomly initialize cards for players
+	m_pCardManager = new CardManager{ Vector2f{200.f, 50.f} };
+	m_pTexture = new Texture{ texturePath };
 }
 
 Player::~Player()
 {
-	for (int index{ 0 }; index < m_MaximumCardNumber; ++index)
-	{
-		if (m_pCards[index] != nullptr)
-		{
-			delete m_pCards[index];
-		}
-	}
+	delete m_pCardManager;
+	delete m_pTexture;
 }
 
-const Card* Player::GetPickedCard() const
+void Player::Draw(const Rectf& mapSize) const
 {
-	return m_PickedCard;
+	const float
+		cellWidth{ mapSize.width / Map::GetDimensions() },
+		cellHeight{ mapSize.height / Map::GetDimensions() },
+		squizeBy{ 5.f };
+
+	Vector2f globalPosition{ Map::LocalToGlobalPosition(mapSize, m_MapPosition) };
+
+	glPushMatrix();
+	{
+		glTranslatef(globalPosition.x+squizeBy, globalPosition.y+squizeBy, 0.f);
+		glScalef(2.5f, 2.5f, 1.f);
+
+		m_pTexture->Draw(Vector2f{ 0.f,0.f });
+	}
+	glPopMatrix();
+}
+
+void Player::DrawCards() const
+{
+	m_pCardManager->DrawCards();
+}
+
+void Player::HoverCards(const Vector2f& mousePosition)
+{
+	m_pCardManager->CardHoveringHandle(mousePosition);
+}
+
+void Player::ProcessHoveredCardClick()
+{
+	m_pCardManager->UseHoveredCard(this);
 }

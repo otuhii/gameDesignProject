@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "CardManager.h"
 #include "utils.h"
+#include "Player.h"
 
 CardManager::CardManager(const Vector2f& drawPos)
 	:m_DrawPos(drawPos)
@@ -46,48 +47,18 @@ void CardManager::DrawCards() const
 {
 	for (int index = 0; index < m_MaximumCardNumber; ++index)
 	{
-		glPushMatrix();
+		if (m_pCards[index] != nullptr)
 		{
-			if (Card::GetHoveredCard() != index)
+			glPushMatrix();
 			{
-				Vector2f cardPos{ m_pCards[index]->GetCardPosition() };
-
-				glTranslatef(Card::GetCardDimensions().x * 0.5f, Card::GetCardDimensions().y * 0.5f, 0.f);
-				glTranslatef(m_DrawPos.x + cardPos.x, m_DrawPos.y + cardPos.y, 0.f);
-				glRotatef(m_pCards[index]->GetRotationAngle(), 0.f, 0.f, 1.f);
-				glTranslatef(-Card::GetCardDimensions().x * 0.5f, -Card::GetCardDimensions().y * 0.5f, 0.f);
-
-				utils::SetColor(Color4f{ 1.f, 0.f, 0.f, 1.f });
-				utils::FillRect(Vector2f{ 0.f, 0.f }, Card::GetCardDimensions().x, Card::GetCardDimensions().y);
-
-				utils::SetColor(Color4f{ 0.f, 0.f, 0.f, 1.f });
-				utils::DrawRect(Vector2f{ 0.f, 0.f }, Card::GetCardDimensions().x, Card::GetCardDimensions().y, 2.f);
-			}
-		}
-		glPopMatrix();
-
-		//drawing hovered card on top of every other card
-		if (index == m_MaximumCardNumber - 1)
-		{
-			if (Card::GetHoveredCard() != -1)
-			{
-				DrawDescription(m_pCards[Card::GetHoveredCard()]->GetCardType());
-				glPushMatrix();
+				if (Card::GetHoveredCard() != index)
 				{
-					const float
-						hoveredOffset{ 40.f };
-					const Vector2f
-						cardPos{ m_pCards[Card::GetHoveredCard()]->GetCardPosition() };
+					Vector2f cardPos{ m_pCards[index]->GetCardPosition() };
 
 					glTranslatef(Card::GetCardDimensions().x * 0.5f, Card::GetCardDimensions().y * 0.5f, 0.f);
-					glTranslatef(m_DrawPos.x + cardPos.x, m_DrawPos.y + cardPos.y + hoveredOffset, 0.f);
-					glScalef(1.5f, 1.5f, 1.f);
+					glTranslatef(m_DrawPos.x + cardPos.x, m_DrawPos.y + cardPos.y, 0.f);
+					glRotatef(m_pCards[index]->GetRotationAngle(), 0.f, 0.f, 1.f);
 					glTranslatef(-Card::GetCardDimensions().x * 0.5f, -Card::GetCardDimensions().y * 0.5f, 0.f);
-
-					//////SHADDDOWW
-					utils::SetColor(Color4f{ 0.f, 0.f, 0.f, 0.4f });
-					utils::FillRect(Vector2f{ 0.12f * Card::GetCardDimensions().x, -0.12f * Card::GetCardDimensions().y }, Card::GetCardDimensions().x, Card::GetCardDimensions().y);
-					//////////
 
 					utils::SetColor(Color4f{ 1.f, 0.f, 0.f, 1.f });
 					utils::FillRect(Vector2f{ 0.f, 0.f }, Card::GetCardDimensions().x, Card::GetCardDimensions().y);
@@ -95,7 +66,40 @@ void CardManager::DrawCards() const
 					utils::SetColor(Color4f{ 0.f, 0.f, 0.f, 1.f });
 					utils::DrawRect(Vector2f{ 0.f, 0.f }, Card::GetCardDimensions().x, Card::GetCardDimensions().y, 2.f);
 				}
-				glPopMatrix();
+			}
+			glPopMatrix();
+
+			//drawing hovered card on top of every other card
+			if (index == m_MaximumCardNumber - 1)
+			{
+				if (Card::GetHoveredCard() != -1)
+				{
+					DrawDescription(m_pCards[Card::GetHoveredCard()]->GetCardType());
+					glPushMatrix();
+					{
+						const float
+							hoveredOffset{ 40.f };
+						const Vector2f
+							cardPos{ m_pCards[Card::GetHoveredCard()]->GetCardPosition() };
+
+						glTranslatef(Card::GetCardDimensions().x * 0.5f, Card::GetCardDimensions().y * 0.5f, 0.f);
+						glTranslatef(m_DrawPos.x + cardPos.x, m_DrawPos.y + cardPos.y + hoveredOffset, 0.f);
+						glScalef(1.5f, 1.5f, 1.f);
+						glTranslatef(-Card::GetCardDimensions().x * 0.5f, -Card::GetCardDimensions().y * 0.5f, 0.f);
+
+						//////SHADDDOWW
+						utils::SetColor(Color4f{ 0.f, 0.f, 0.f, 0.4f });
+						utils::FillRect(Vector2f{ 0.12f * Card::GetCardDimensions().x, -0.12f * Card::GetCardDimensions().y }, Card::GetCardDimensions().x, Card::GetCardDimensions().y);
+						//////////
+
+						utils::SetColor(Color4f{ 1.f, 0.f, 0.f, 1.f });
+						utils::FillRect(Vector2f{ 0.f, 0.f }, Card::GetCardDimensions().x, Card::GetCardDimensions().y);
+
+						utils::SetColor(Color4f{ 0.f, 0.f, 0.f, 1.f });
+						utils::DrawRect(Vector2f{ 0.f, 0.f }, Card::GetCardDimensions().x, Card::GetCardDimensions().y, 2.f);
+					}
+					glPopMatrix();
+				}
 			}
 		}
 	}
@@ -118,9 +122,31 @@ void CardManager::CardHoveringHandle(const Vector2f& mousePosition) const
 	Card::SetHoveredCard(-1);
 }
 
-void CardManager::RecalculateCardPosition()
-{
 
+///TODO rethink architecture for player -> cardmanager -> card because i am not sure is it good that i have it here 
+//i can use this but i am not sure if it is a good decision
+void CardManager::UseHoveredCard(Player* player)
+{
+	if (Card::GetHoveredCard() != -1)
+	{
+		ApplyCardOnPlayer(player);
+		RecalculateCardPosition(Card::GetHoveredCard());
+		Card::SetHoveredCard(-1);
+	}
+}
+
+void CardManager::RecalculateCardPosition(int deletionIndex)
+{
+	delete m_pCards[deletionIndex];
+	m_pCards[deletionIndex] = nullptr;
+	for (int index{ m_MaximumCardNumber - 1 }; index > deletionIndex; --index)
+	{
+		if (m_pCards[index] != nullptr)
+		{
+			m_pCards[deletionIndex] = m_pCards[index];
+			m_pCards[index] = nullptr;
+		}
+	}
 }
 
 void CardManager::DrawDescription(Card::CardType type) const
@@ -132,12 +158,16 @@ void CardManager::DrawDescription(Card::CardType type) const
 	Card::OutputCardDescription( pos, type);
 }
 
+void CardManager::ApplyCardOnPlayer(Player* player)
+{
+	//TODO change states or something like that
+}
+
 
 //SAT algo, something with rotation matrix, it works so idgaf
 //TODO maybe look into it later
 bool CardManager::IsPointInCard(const Vector2f& mousePos, const Vector2f& cardPos, float angle) const
 {
-
 	float 
 		dx{ mousePos.x - (m_DrawPos.x + cardPos.x) },
 		dy{ mousePos.y - (m_DrawPos.y + cardPos.y) };
