@@ -5,6 +5,8 @@
 #include "Card.h"
 #include "UserUtils.h"
 
+#include <iostream>
+
 Map::Map(const Rectf& mapBounds)
 	:m_MapBounds(mapBounds)
 {
@@ -43,6 +45,7 @@ void Map::Draw(bool debug) const
 		squizeBy{ 5.f };
 
 	Color4f
+		red{1.f, 0.f, 0.f, 1.f},
 		gray{ 0.3f, 0.3f, 0.3f, 1.f },
 		blue{ 0.f, 0.f, 1.f, 1.f };
 
@@ -53,6 +56,10 @@ void Map::Draw(bool debug) const
 			if (m_pMap[row][column]->IsWallPlaced())
 			{
 				utils::SetColor(blue);
+			}
+			else if (m_pMap[row][column]->IsTrapPlaced())
+			{
+				utils::SetColor(red);
 			}
 			else 
 			{
@@ -98,14 +105,12 @@ bool Map::IsWallPlacedOnCell(int index) const
 }
 
 
-
-
 void Map::ProcessMapClick(Player* player, Player* enemyPlayer, const Vector2f& clickPos)
 {
 	switch (player->GetPlayerState())
 	{
 	case Player::PlayState::railgunAim:
-		HandleRailgunStateClick(player, clickPos);
+		HandleRailgunStateClick(player, enemyPlayer, clickPos);
 		break;
 	case Player::PlayState::trapPlacement:
 		HandleTrapStateClick(player, clickPos);
@@ -142,8 +147,6 @@ void Map::ResetHighlight()
 		}
 	}
 }
-
-
 
 Rectf Map::GetMapBounds() const
 {
@@ -214,20 +217,115 @@ int Map::ColumnFromIndex(int index) const
 #pragma region playerStateCursorHandling
 
 
-void Map::HandleRailgunStateClick(Player* player, const Vector2f& mousePos)
+void Map::HandleRailgunStateClick(Player* player, Player* enemyPlayer, const Vector2f& mousePos)
 {
+	//TODO: animation of explosions
+
+	Vector2i m_PlayerPosition{ enemyPlayer->GetPlayerPosition() };
+
+	if (m_pMap[m_PlayerPosition.y][m_PlayerPosition.x]->IsHighlighted())
+	{
+		std::cout << "PLAYER IS DAMAGED" << std::endl;
+			//TODO better handling of player damage taking
+	}
+
 	player->SetPlayerState(Player::PlayState::none);
 }
 
 void Map::HandleTrapStateClick(Player* player, const Vector2f& mousePos)
 {
+	Vector2i
+		localMousePos{ Map::GlobalToLocalPosition(m_MapBounds, mousePos) },
+		playerPosition{ player->GetPlayerPosition() };
+
+	int dx{ localMousePos.x - playerPosition.x };
+	int dy{ localMousePos.y - playerPosition.y };
+
+	const int
+		trapPlacementRange{ 2 };
+
+	Vector2i targetTile{
+		playerPosition.x + UserUtils::myClamp(dx, -trapPlacementRange, trapPlacementRange),
+		playerPosition.y + UserUtils::myClamp(dy, -trapPlacementRange, trapPlacementRange)
+	};
+
+	if (targetTile.x >= 0 && targetTile.x < m_MapDimension &&
+		targetTile.y >= 0 && targetTile.y < m_MapDimension)
+	{
+		if (m_pMap[targetTile.y][targetTile.x] != nullptr)
+		{
+			if (!m_pMap[targetTile.y][targetTile.x]->IsWallPlaced())
+			{
+				m_pMap[targetTile.y][targetTile.x]->PlaceTrap();
+			}
+		}
+	}
+
 	player->SetPlayerState(Player::PlayState::none);
 }
 
 void Map::HandleHookStateClick(Player* player, Player* enemyPlayer, const Vector2f& mousePos)
 {
+	Vector2i
+		playerPosition{ player->GetPlayerPosition() },
+		localMousePosition{ Map::GlobalToLocalPosition(Map::GetMapBounds(), mousePos) };
+
+	Vector2i
+		stepVector{ 0, 0 };
+
+	if (playerPosition.y + 1 < m_MapDimension && 
+		m_pMap[playerPosition.y+1][playerPosition.x]->IsHighlighted()
+		)
+	{
+		stepVector.y = 1;
+	}
+	else if (playerPosition.y - 1 >= 0 && 
+		m_pMap[playerPosition.y - 1][playerPosition.x]->IsHighlighted()
+		)
+	{
+		stepVector.y = -1;
+	}
+	else if (playerPosition.x + 1 < m_MapDimension && 
+		m_pMap[playerPosition.y][playerPosition.x + 1]->IsHighlighted()
+		)
+	{
+		stepVector.x = 1;
+	}
+	else if (playerPosition.x - 1 >= 0 && 
+		m_pMap[playerPosition.y][playerPosition.x - 1]->IsHighlighted())
+	{
+		stepVector.x = -1;
+	}
+	else
+	{
+		return;
+	}
+
+	Vector2i currentTile{
+			playerPosition.x + stepVector.x,
+			playerPosition.y + stepVector.y
+	};
+
+	while (m_pMap[currentTile.y][currentTile.x]->IsHighlighted())
+	{
+		currentTile.x += stepVector.x;
+		currentTile.y += stepVector.y;
+
+		if (currentTile.x < 0 || currentTile.x >= m_MapDimension ||
+			currentTile.y < 0 || currentTile.y >= m_MapDimension)
+		{
+			break;
+		}
+	}
+
+	currentTile.x -= stepVector.x;
+	currentTile.y -= stepVector.y;
+
+	player->SetPlayerPosition(currentTile);
+
 	player->SetPlayerState(Player::PlayState::none);
 }
+
 
 void Map::HandleRailgunStateHovering(Player* player, const Vector2f& mousePos)
 {
@@ -388,10 +486,6 @@ void Map::HandleHookStateHovering(Player* player, Player* enemyPlayer, const Vec
 }
 
 #pragma endregion playerStateCursorHandling
-
-
-
-
 
 #pragma region CELL_DEFINITIONS
 

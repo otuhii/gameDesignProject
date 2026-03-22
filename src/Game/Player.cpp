@@ -54,6 +54,11 @@ Player::PlayState Player::GetPlayerState() const
 	return m_PlayerState;
 }
 
+void Player::SetPlayerPosition(const Vector2i& position)
+{
+	m_MapPosition = position;
+}
+
 Vector2i Player::GetPlayerPosition() const
 {
 	return m_MapPosition;

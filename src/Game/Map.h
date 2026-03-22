@@ -71,7 +71,7 @@ private:
 #pragma region playerStateCursorHandling
 	
 
-	void HandleRailgunStateClick(Player* player, const Vector2f& mousePos);
+	void HandleRailgunStateClick(Player* player, Player* enemyPlayer, const Vector2f& mousePos);
 	void HandleTrapStateClick(Player* player, const Vector2f& mousePos);
 	void HandleHookStateClick(Player* player, Player* enemyPlayer, const Vector2f& mousePos);
 

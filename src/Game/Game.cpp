@@ -6,8 +6,21 @@
 
 #include <iostream>
 
+/*
+	QUESTIONS TO ANSWER FOR FIRST PLAYTEST:
+	do players think that seeing each others cards will be a problem for gameplay?
+
+	do players think that seeing where other player put a bomb will be a problem for gameplay?
+
+*/
 
 
+//TODO Timer for each player's turn
+//TODO Change mechanic of trap placement because it is hard to implement in current enviroment without mulptiple screen(multiplayer) gameplay, every player can see the trap
+//TODO animation for player movement
+
+
+//VISUALS AND NOT NECCESSARY STUFF:
 //TODO vhs like effect
 //TODO maybe maybe maybe multiplayer but i need to remind myself about sockets and stuff
 //TODO for wall generation i can just have some presets for wall structures and then just put in on the map 
@@ -36,7 +49,7 @@ void Game::Initialize( )
 
 	m_pMap = new Map{ Rectf{pos.x, pos.y*2, m_MapDimensions, m_MapDimensions} };
 
-	m_Players[0] = new Player{10, 10, "firstPlayerSprite.png"};
+	m_Players[0] = new Player{5, 12, "firstPlayerSprite.png"};
 	m_Players[1] = new Player{5, 10, "secondPlayerSprite.png"};
 }
 
@@ -49,7 +62,7 @@ void Game::Cleanup( )
 
 void Game::Update( float elapsedSec )
 {
-	//std::cout << 1 / elapsedSec << "FPS" << std::endl;
+	std::cout << 1 / elapsedSec << "FPS" << std::endl;
 
 	// Check keyboard state
 	//const Uint8 *pStates = SDL_GetKeyboardState( nullptr );

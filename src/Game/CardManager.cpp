@@ -214,7 +214,6 @@ void CardManager::ApplyCardOnPlayer(Player* player)
 	case Card::CardType::hookCard:
 		player->SetPlayerState(Player::PlayState::hookPickDirection);
 		break;
-
 	}
 }
 

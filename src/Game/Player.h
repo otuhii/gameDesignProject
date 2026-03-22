@@ -26,6 +26,7 @@ public:
 	void		 SetPlayerState(PlayState state);
 	PlayState	 GetPlayerState() const;
 
+	void		 SetPlayerPosition(const Vector2i& position);
 	Vector2i	 GetPlayerPosition() const;
 
 	void HoverCards(const Vector2f& m_MousePosition);

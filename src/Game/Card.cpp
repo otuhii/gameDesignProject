@@ -92,7 +92,9 @@ const Vector2f& Card::GetCardDimensions()
 #pragma region descriptionHandling
 void Card::OutputCardDescription(const Vector2f& pos, CardType type)
 {
-    m_CardDescriptions[static_cast<int>(type)]->Draw(pos);
+    Vector2f drawPos{ 0, pos.y };
+
+    m_CardDescriptions[static_cast<int>(type)]->Draw(drawPos);
 }
 
 void Card::InitializeDescriptions()
@@ -109,9 +111,8 @@ void Card::InitializeDescriptions()
         "Place a hidden trap on an adjacent tile. The firt player to step on it takes massive damage and ends his turn",fontPath, textSize, textColor
     };
 
-    //Target a wall or player up to 4 tiles away and pull yourself there, in case there is neither player nor a wall, you move 1 cell in that direction
     m_CardDescriptions[static_cast<int>(Card::CardType::hookCard)] = new Texture{
-        "Target a wall or player up to 4 tiles away and pull yourself there",fontPath, textSize, textColor
+        "Target a wall or player up to 4 tiles away and pull yourself there, in case there is neither player nor a wall, you move 1 cell in that direction",fontPath, textSize, textColor
     };
 
 }
