@@ -4,6 +4,14 @@
 #include "Player.h"
 #include "utils.h"
 
+#include <iostream>
+
+
+
+//TODO vhs like effect
+//TODO maybe maybe maybe multiplayer but i need to remind myself about sockets and stuff
+//TODO for wall generation i can just have some presets for wall structures and then just put in on the map 
+
 const float Game::m_MapDimensions{ 720.f };
 
 Game::Game( const Window& window ) 
@@ -28,8 +36,8 @@ void Game::Initialize( )
 
 	m_pMap = new Map{ Rectf{pos.x, pos.y*2, m_MapDimensions, m_MapDimensions} };
 
-	m_Players[0] = new Player{1, 0, "firstPlayerSprite.png"};
-	m_Players[1] = new Player{5, 0, "secondPlayerSprite.png"};
+	m_Players[0] = new Player{10, 10, "firstPlayerSprite.png"};
+	m_Players[1] = new Player{5, 10, "secondPlayerSprite.png"};
 }
 
 void Game::Cleanup( )
@@ -41,6 +49,8 @@ void Game::Cleanup( )
 
 void Game::Update( float elapsedSec )
 {
+	//std::cout << 1 / elapsedSec << "FPS" << std::endl;
+
 	// Check keyboard state
 	//const Uint8 *pStates = SDL_GetKeyboardState( nullptr );
 	//if ( pStates[SDL_SCANCODE_RIGHT] )
@@ -58,8 +68,11 @@ void Game::Draw( ) const
 	ClearBackground( );
 
 	m_pMap->Draw(false);
-	m_Players[0]->DrawCards();
+
 	m_Players[0]->Draw(m_pMap->GetMapBounds());
+	m_Players[1]->Draw(m_pMap->GetMapBounds());
+	m_Players[0]->DrawCards();
+	
 }
 
 void Game::ProcessKeyDownEvent( const SDL_KeyboardEvent & e )
@@ -88,6 +101,11 @@ void Game::ProcessKeyUpEvent( const SDL_KeyboardEvent& e )
 
 void Game::ProcessMouseMotionEvent( const SDL_MouseMotionEvent& e )
 {
+	m_pMap->ResetHighlight();
+	if (utils::IsPointInRect(Vector2f{ static_cast<float>(e.x), static_cast<float>(e.y) }, m_pMap->GetMapBounds()))
+	{
+		m_pMap->ProcessMapHovering(m_Players[0],m_Players[1], Vector2f{ static_cast<float>(e.x), static_cast<float>(e.y) });
+	}
 	m_Players[0]->HoverCards(Vector2f{ static_cast<float>(e.x), static_cast<float>(e.y) });
 }
 
@@ -116,7 +134,7 @@ void Game::ProcessMouseUpEvent( const SDL_MouseButtonEvent& e )
 	case SDL_BUTTON_LEFT:
 		if (utils::IsPointInRect(Vector2f{static_cast<float>(e.x), static_cast<float>(e.y)}, m_pMap->GetMapBounds()))
 		{
-			m_pMap->ProcessMapClick(m_Players[0], Vector2f{ static_cast<float>(e.x), static_cast<float>(e.y) });
+			m_pMap->ProcessMapClick(m_Players[0], m_Players[1], Vector2f{static_cast<float>(e.x), static_cast<float>(e.y)});
 		}
 		m_Players[0]->ProcessHoveredCardClick();
 		break;

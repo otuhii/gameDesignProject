@@ -11,12 +11,11 @@ public:
 		railgunCard, //deal damage in a straight line to any of the sides
 		trapCard, //place a trap on an adjacent tile, first player who will step on it will receive some damage
 
-		hookCard, //player pick direction and it pull player 4 tiles there
-		absoluteMovement, //player who casts this card picks a direction and all players are moved 2 tiles in that direction
+		hookCard, //player pick direction and if there is a wall or other player, he can hooks himself, otherwise he just moves 1 cell in that direction
 
 		typeCount
 	};
-	Card(const Vector2f& cardPos, float angle);
+	Card(const Vector2f& cardPos, float angle, CardType type);
 
 	~Card();
 

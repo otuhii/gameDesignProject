@@ -19,7 +19,9 @@ CardManager::CardManager(const Vector2f& drawPos)
 
 	for (int index = 0; index < m_MaximumCardNumber; ++index)
 	{
-		m_pCards[index] = new Card{pos, rotationAngle};
+		Card::CardType type{ static_cast<Card::CardType>(rand() % 3) };
+
+		m_pCards[index] = new Card{pos, rotationAngle, type};
 
 		if (index < decreaseAfter)
 		{
@@ -70,7 +72,7 @@ void CardManager::DrawCards() const
 			glPopMatrix();
 
 			//drawing hovered card on top of every other card
-			if (index == m_MaximumCardNumber - 1)
+			if (index == m_CurrentCardNumber - 1)
 			{
 				if (Card::GetHoveredCard() != -1)
 				{
@@ -117,6 +119,10 @@ void CardManager::CardHoveringHandle(const Vector2f& mousePosition) const
 				return;
 			}
 		}
+		else
+		{
+			continue;
+		}
 	}
 
 	Card::SetHoveredCard(-1);
@@ -129,6 +135,7 @@ void CardManager::UseHoveredCard(Player* player)
 {
 	if (Card::GetHoveredCard() != -1)
 	{
+		m_CurrentCardNumber--;
 		ApplyCardOnPlayer(player);
 		RecalculateCardPosition(Card::GetHoveredCard());
 		Card::SetHoveredCard(-1);
@@ -137,14 +144,48 @@ void CardManager::UseHoveredCard(Player* player)
 
 void CardManager::RecalculateCardPosition(int deletionIndex)
 {
+	RecalculateCardIndex(deletionIndex);
+
+	const Vector2f posStep{
+		50.f,
+		10.f
+	};
+	const float angleStep{ -10.f };
+
+	Vector2f pos{};
+	float rotationAngle{ 30.f };
+	int decreaseAfter{ m_CurrentCardNumber / 2 };
+
+	for (int index{ 0 }; index < m_CurrentCardNumber; ++index)
+	{
+		m_pCards[index]->SetPosition(pos);
+		m_pCards[index]->SetRotationAngle(rotationAngle);
+
+		if (index < decreaseAfter)
+		{
+			pos.y += posStep.y;
+		}
+		else
+		{
+			pos.y -= posStep.y;
+		}
+		pos.x += posStep.x;
+		rotationAngle += angleStep;
+	}
+}
+
+void CardManager::RecalculateCardIndex(int deletionIndex)
+{
 	delete m_pCards[deletionIndex];
 	m_pCards[deletionIndex] = nullptr;
+
 	for (int index{ m_MaximumCardNumber - 1 }; index > deletionIndex; --index)
 	{
 		if (m_pCards[index] != nullptr)
 		{
 			m_pCards[deletionIndex] = m_pCards[index];
 			m_pCards[index] = nullptr;
+			return;
 		}
 	}
 }
@@ -160,10 +201,25 @@ void CardManager::DrawDescription(Card::CardType type) const
 
 void CardManager::ApplyCardOnPlayer(Player* player)
 {
-	//TODO change states or something like that
+	switch (m_pCards[Card::GetHoveredCard()]->GetCardType())
+	{
+	case Card::CardType::railgunCard:
+		player->SetPlayerState(Player::PlayState::railgunAim);
+		break;
+
+	case Card::CardType::trapCard:
+		player->SetPlayerState(Player::PlayState::trapPlacement);
+		break;
+
+	case Card::CardType::hookCard:
+		player->SetPlayerState(Player::PlayState::hookPickDirection);
+		break;
+
+	}
 }
 
 
+//TODO having hovered card index as static can be a problem because it will mess up a separate player decks of cards
 //SAT algo, something with rotation matrix, it works so idgaf
 //TODO maybe look into it later
 bool CardManager::IsPointInCard(const Vector2f& mousePos, const Vector2f& cardPos, float angle) const

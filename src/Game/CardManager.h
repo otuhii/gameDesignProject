@@ -27,6 +27,8 @@ private:
 	Card* m_pCards[m_MaximumCardNumber];
 
 	void RecalculateCardPosition(int deletionIndex);
+	void RecalculateCardIndex(int deletionIndex);
+
 	void DrawDescription(Card::CardType type) const;
 
 	void ApplyCardOnPlayer(Player* player);

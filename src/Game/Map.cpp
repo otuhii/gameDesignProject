@@ -3,6 +3,7 @@
 
 #include "Map.h"
 #include "Card.h"
+#include "UserUtils.h"
 
 Map::Map(const Rectf& mapBounds)
 	:m_MapBounds(mapBounds)
@@ -58,18 +59,21 @@ void Map::Draw(bool debug) const
 				utils::SetColor(gray);
 			}
 
-			utils::FillRect(Rectf{
-				m_MapBounds.left+column*cellWidth+squizeBy,
-				m_MapBounds.bottom+row * cellHeight+squizeBy,
-				cellWidth-squizeBy,
-				cellHeight-squizeBy
-				});
-		}
-	}
+			Rectf cellRect{
+				m_MapBounds.left + column * cellWidth + squizeBy,
+				m_MapBounds.bottom + row * cellHeight + squizeBy,
+				cellWidth - squizeBy,
+				cellHeight - squizeBy
+			};
 
-	if (debug)
-	{
-		utils::DrawRect(m_MapBounds, 5.f);
+			utils::FillRect(cellRect);
+			utils::SetColor(Color4f{ 1.f, 1.f, 0.f, 1.f });
+			if (m_pMap[row][column]->IsHighlighted())
+			{
+				utils::DrawRect(cellRect, 5);
+			}
+			
+		}
 	}
 
 }
@@ -93,24 +97,53 @@ bool Map::IsWallPlacedOnCell(int index) const
 	return m_pMap[row][column]->IsWallPlaced();
 }
 
-void Map::ProcessMapClick(Player* player, const Vector2f& clickPos)
+
+
+
+void Map::ProcessMapClick(Player* player, Player* enemyPlayer, const Vector2f& clickPos)
 {
-	const Card*
-		playersCard{ nullptr }; /////TODO CHANGE THIS because i remove function that return card
-	//TODO fix card hovering after first deletion of card
-	
-	if (playersCard != nullptr)
+	switch (player->GetPlayerState())
 	{
-		if (playersCard->GetCardType() == Card::CardType::trapCard)
-		{
-			PlaceTrap(GlobalToLocalPosition(m_MapBounds, clickPos));
-		}
-	}
-	else
-	{
-		PlaceWall(GlobalToLocalPosition(m_MapBounds, clickPos));
+	case Player::PlayState::railgunAim:
+		HandleRailgunStateClick(player, clickPos);
+		break;
+	case Player::PlayState::trapPlacement:
+		HandleTrapStateClick(player, clickPos);
+		break;
+	case Player::PlayState::hookPickDirection:
+		HandleHookStateClick(player, enemyPlayer, clickPos);
+		break;
 	}
 }
+
+void Map::ProcessMapHovering(Player* player, Player* enemyPlayer, const Vector2f& mousePos)
+{
+	switch (player->GetPlayerState())
+	{
+	case Player::PlayState::railgunAim:
+		HandleRailgunStateHovering(player, mousePos);
+		break;
+	case Player::PlayState::trapPlacement:
+		HandleTrapStateHovering(player, mousePos);
+		break;
+	case Player::PlayState::hookPickDirection:
+		HandleHookStateHovering(player, enemyPlayer, mousePos);
+		break;
+	}
+}
+
+void Map::ResetHighlight()
+{
+	for (int row{ 0 }; row < m_MapDimension; ++row)
+	{
+		for (int column{ 0 }; column < m_MapDimension; ++column)
+		{
+			m_pMap[row][column]->Dehighlight();
+		}
+	}
+}
+
+
 
 Rectf Map::GetMapBounds() const
 {
@@ -178,6 +211,186 @@ int Map::ColumnFromIndex(int index) const
 }
 
 
+#pragma region playerStateCursorHandling
+
+
+void Map::HandleRailgunStateClick(Player* player, const Vector2f& mousePos)
+{
+	player->SetPlayerState(Player::PlayState::none);
+}
+
+void Map::HandleTrapStateClick(Player* player, const Vector2f& mousePos)
+{
+	player->SetPlayerState(Player::PlayState::none);
+}
+
+void Map::HandleHookStateClick(Player* player, Player* enemyPlayer, const Vector2f& mousePos)
+{
+	player->SetPlayerState(Player::PlayState::none);
+}
+
+void Map::HandleRailgunStateHovering(Player* player, const Vector2f& mousePos)
+{
+	Vector2i
+		playerPosition{ player->GetPlayerPosition() },
+		localMousePosition{ Map::GlobalToLocalPosition(Map::GetMapBounds(), mousePos) };
+
+	const int
+		damageRange{ 4 };
+
+	Vector2i
+		stepVector{ 0, 0 };
+
+	int
+		dx{ localMousePosition.x - playerPosition.x },
+		dy{ localMousePosition.y - playerPosition.y };
+
+	if (dx == 0 && dy == 0)
+	{
+		//mouse on player tile handling
+		return;
+	}
+
+	if (std::abs(dx) > std::abs(dy))
+	{
+		stepVector.x = dx / std::abs(dx);
+	}
+	else
+	{
+		stepVector.y = dy / std::abs(dy);
+	}
+
+	for (int index{ 1 }; index <= damageRange; ++index)
+	{
+		Vector2i targetTile{
+			playerPosition.x + index * stepVector.x,
+			playerPosition.y + index * stepVector.y
+		};
+		if (targetTile.x < m_MapDimension && targetTile.y < m_MapDimension &&
+			targetTile.x >= 0 && targetTile.y >= 0)
+		{
+			if (!m_pMap[targetTile.y][targetTile.x]->IsWallPlaced())
+			{
+				m_pMap[targetTile.y][targetTile.x]->Highlight();
+			}
+			else
+			{
+				return;
+			}
+		}
+		else
+		{
+			return; // break after hitting edge of the map
+		}
+	}
+}
+
+void Map::HandleTrapStateHovering(Player* player, const Vector2f& mousePos)
+{
+	Vector2i
+		localMousePos{ Map::GlobalToLocalPosition(m_MapBounds, mousePos) },
+		playerPosition{ player->GetPlayerPosition() };
+
+	int dx{ localMousePos.x - playerPosition.x };
+	int dy{ localMousePos.y - playerPosition.y };
+
+	const int 
+		trapPlacementRange{ 2 };
+
+	Vector2i targetTile{
+		playerPosition.x + UserUtils::myClamp(dx, -trapPlacementRange, trapPlacementRange),
+		playerPosition.y + UserUtils::myClamp(dy, -trapPlacementRange, trapPlacementRange)
+	};
+
+	if (targetTile.x >= 0 && targetTile.x < m_MapDimension &&
+		targetTile.y >= 0 && targetTile.y < m_MapDimension)
+	{
+		if (m_pMap[targetTile.y][targetTile.x] != nullptr)
+		{
+			if (!m_pMap[targetTile.y][targetTile.x]->IsWallPlaced())
+			{
+				m_pMap[targetTile.y][targetTile.x]->Highlight();
+			}
+		}
+	}
+}
+
+void Map::HandleHookStateHovering(Player* player, Player* enemyPlayer, const Vector2f& mousePos)
+{
+	Vector2i
+		playerPosition{ player->GetPlayerPosition() },
+		enemyPlayerPosition{ enemyPlayer->GetPlayerPosition() },
+		localMousePosition{ Map::GlobalToLocalPosition(Map::GetMapBounds(), mousePos) };
+
+	const int
+		maxHookRange{ 4 };
+
+	int
+		finalHookRange{ 1 };
+
+	Vector2i
+		stepVector{ 0, 0 };
+
+	int
+		dx{ localMousePosition.x - playerPosition.x },
+		dy{ localMousePosition.y - playerPosition.y };
+
+	if (dx == 0 && dy == 0)
+	{
+		//mouse on player tile handling
+		return;
+	}
+	if (std::abs(dx) > std::abs(dy))
+	{
+		stepVector.x = dx / std::abs(dx);
+	}
+	else
+	{
+		stepVector.y = dy / std::abs(dy);
+	}
+
+	for (int index{ 1 }; index <= maxHookRange+1; ++index)
+	{
+		Vector2i targetTile{
+			playerPosition.x + index * stepVector.x,
+			playerPosition.y + index * stepVector.y
+		};
+		if (targetTile.x >= m_MapDimension || targetTile.y >= m_MapDimension ||
+			targetTile.x < 0 || targetTile.y < 0)
+		{
+			break;
+		}
+		bool isEnemy{
+			(targetTile.x == enemyPlayerPosition.x) && 
+			(targetTile.y == enemyPlayerPosition.y)
+		};
+
+		if (isEnemy || m_pMap[targetTile.y][targetTile.x]->IsWallPlaced())
+		{
+			finalHookRange = index-1;
+			break;
+		}
+
+	}
+
+	if (finalHookRange > 0)
+	{
+		for (int index{ 1 }; index <= finalHookRange; ++index)
+		{
+			Vector2i targetTile{
+			playerPosition.x + index * stepVector.x,
+			playerPosition.y + index * stepVector.y
+			};
+
+			m_pMap[targetTile.y][targetTile.x]->Highlight();
+		}
+	}
+}
+
+#pragma endregion playerStateCursorHandling
+
+
+
 
 
 #pragma region CELL_DEFINITIONS
@@ -197,6 +410,11 @@ bool Map::Cell::IsWallPlaced() const
 	return (m_State == Cell::CellState::wallPlaced);
 }
 
+bool Map::Cell::IsHighlighted() const
+{
+	return m_Highlighted;
+}
+
 void Map::Cell::PlaceTrap()
 {
 	m_State = CellState::trapPlaced;
@@ -207,4 +425,15 @@ void Map::Cell::PlaceWall()
 	m_State = CellState::wallPlaced;
 }
 
+void Map::Cell::Dehighlight()
+{
+	m_Highlighted = false;
+}
+
+void Map::Cell::Highlight()
+{
+	m_Highlighted = true;
+}
+
 #pragma endregion CELL_DEFINITIONS
+

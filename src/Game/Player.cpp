@@ -4,9 +4,10 @@
 #include "Texture.h"
 #include "Map.h"
 #include "utils.h"
+#include <iostream>
 
 Player::Player(int posX, int posY, const std::string texturePath)
-	: m_MapPosition(posX, posY)
+	: m_MapPosition(posX, posY), m_PlayerState(PlayState::none)
 {
 	// TODO: randomly initialize cards for players
 	m_pCardManager = new CardManager{ Vector2f{200.f, 50.f} };
@@ -43,6 +44,21 @@ void Player::DrawCards() const
 	m_pCardManager->DrawCards();
 }
 
+void Player::SetPlayerState(PlayState state)
+{
+	m_PlayerState = state;
+}
+
+Player::PlayState Player::GetPlayerState() const
+{
+	return m_PlayerState;
+}
+
+Vector2i Player::GetPlayerPosition() const
+{
+	return m_MapPosition;
+}
+
 void Player::HoverCards(const Vector2f& mousePosition)
 {
 	m_pCardManager->CardHoveringHandle(mousePosition);
@@ -51,4 +67,5 @@ void Player::HoverCards(const Vector2f& mousePosition)
 void Player::ProcessHoveredCardClick()
 {
 	m_pCardManager->UseHoveredCard(this);
+
 }

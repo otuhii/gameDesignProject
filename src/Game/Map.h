@@ -13,8 +13,11 @@ public:
 	bool IsTrapPlacedOnCell(int index) const;
 	bool IsWallPlacedOnCell(int index) const;
 
-	void ProcessMapClick(Player* player, const Vector2f& clickPos);
-	
+	void ProcessMapClick(Player* player, Player* enemyPlayer, const Vector2f& clickPos);
+	void ProcessMapHovering(Player* player, Player* enemyPlayer, const Vector2f& mousePos);
+
+	void ResetHighlight();
+
 	Rectf GetMapBounds() const;
 
 	static Vector2i GlobalToLocalPosition(const Rectf& mapSize, const Vector2f& globalPosition);
@@ -34,11 +37,18 @@ private:
 
 		bool IsTrapPlaced() const;
 		bool IsWallPlaced() const;
-		
+		bool IsHighlighted() const;
+
+
 		void PlaceTrap();
 		void PlaceWall();
 
+		void Highlight();
+		void Dehighlight();
+
 	private:
+		bool m_Highlighted{ false };
+
 		CellState m_State{ CellState::empty };
 	};
 
@@ -54,5 +64,24 @@ private:
 
 	int RowFromIndex(int index) const;
 	int ColumnFromIndex(int index) const;
+
+
+
+
+#pragma region playerStateCursorHandling
+	
+
+	void HandleRailgunStateClick(Player* player, const Vector2f& mousePos);
+	void HandleTrapStateClick(Player* player, const Vector2f& mousePos);
+	void HandleHookStateClick(Player* player, Player* enemyPlayer, const Vector2f& mousePos);
+
+
+	void HandleRailgunStateHovering(Player* player, const Vector2f& mousePos);
+	void HandleTrapStateHovering(Player* player, const Vector2f& mousePos);
+	void HandleHookStateHovering(Player* player, Player* enemyPlayer, const Vector2f& mousePos);
+
+#pragma endregion playerStateCursorHandling
+
+
 };
 

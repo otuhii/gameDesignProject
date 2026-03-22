@@ -9,8 +9,8 @@ Texture* Card::m_CardDescriptions[static_cast<int>(CardType::typeCount)];
 int Card::m_HoveredCard{ -1 };
 int Card::m_CardCount{0};
 
-Card::Card(const Vector2f& cardPos, float angle)
-    : m_Position{ cardPos }, m_RotationAngle(angle), m_Type{CardType::hookCard}
+Card::Card(const Vector2f& cardPos, float angle, CardType type)
+    : m_Position{ cardPos }, m_RotationAngle(angle), m_Type{type}
 {
     if (m_CardCount == 0)
     {
@@ -109,13 +109,11 @@ void Card::InitializeDescriptions()
         "Place a hidden trap on an adjacent tile. The firt player to step on it takes massive damage and ends his turn",fontPath, textSize, textColor
     };
 
+    //Target a wall or player up to 4 tiles away and pull yourself there, in case there is neither player nor a wall, you move 1 cell in that direction
     m_CardDescriptions[static_cast<int>(Card::CardType::hookCard)] = new Texture{
         "Target a wall or player up to 4 tiles away and pull yourself there",fontPath, textSize, textColor
     };
 
-    m_CardDescriptions[static_cast<int>(Card::CardType::absoluteMovement)] = new Texture{
-        "You choose movement direction and all players move 2 cells in that direction",fontPath, textSize, textColor
-    };
 }
 
 #pragma endregion descriptionHandling
