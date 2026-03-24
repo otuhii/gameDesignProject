@@ -45,9 +45,10 @@ void Map::Draw(bool debug) const
 		squizeBy{ 5.f };
 
 	Color4f
-		red{1.f, 0.f, 0.f, 1.f},
+		red{ 1.f, 0.f, 0.f, 1.f },
 		gray{ 0.3f, 0.3f, 0.3f, 1.f },
-		blue{ 0.f, 0.f, 1.f, 1.f };
+		blue{ 0.f, 0.f, 1.f, 1.f },
+		green(0.f, 0.6f, 0.f, 1.f);
 
 	for (int row{ 0 }; row < m_MapDimension; ++row)
 	{
@@ -55,7 +56,7 @@ void Map::Draw(bool debug) const
 		{
 			if (m_pMap[row][column]->IsWallPlaced())
 			{
-				utils::SetColor(blue);
+				utils::SetColor(gray);
 			}
 			else if (m_pMap[row][column]->IsTrapPlaced())
 			{
@@ -63,7 +64,7 @@ void Map::Draw(bool debug) const
 			}
 			else 
 			{
-				utils::SetColor(gray);
+				utils::SetColor(green);
 			}
 
 			Rectf cellRect{

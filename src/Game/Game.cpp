@@ -25,7 +25,7 @@
 //TODO maybe maybe maybe multiplayer but i need to remind myself about sockets and stuff
 //TODO for wall generation i can just have some presets for wall structures and then just put in on the map 
 
-const float Game::m_MapDimensions{ 720.f };
+const float Game::m_MapDimensions{ 520.f };
 
 Game::Game( const Window& window ) 
 	:BaseGame{ window }
@@ -62,8 +62,10 @@ void Game::Cleanup( )
 
 void Game::Update( float elapsedSec )
 {
-	std::cout << 1 / elapsedSec << "FPS" << std::endl;
+	//std::cout << 1 / elapsedSec << "FPS" << std::endl;
 
+
+	std::cout << "Grisha saset huii i lizhet agromnye yaytsa" << std::endl;
 	// Check keyboard state
 	//const Uint8 *pStates = SDL_GetKeyboardState( nullptr );
 	//if ( pStates[SDL_SCANCODE_RIGHT] )

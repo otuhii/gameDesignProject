@@ -32,7 +32,7 @@ void Player::Draw(const Rectf& mapSize) const
 	glPushMatrix();
 	{
 		glTranslatef(globalPosition.x+squizeBy, globalPosition.y+squizeBy, 0.f);
-		glScalef(2.5f, 2.5f, 1.f);
+		glScalef(1.25f, 1.25f, 1.f);
 
 		m_pTexture->Draw(Vector2f{ 0.f,0.f });
 	}

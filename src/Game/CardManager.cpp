@@ -7,8 +7,8 @@ CardManager::CardManager(const Vector2f& drawPos)
 	:m_DrawPos(drawPos)
 {
 	const Vector2f posStep{
-		50.f,
-		10.f
+		30.f,
+		3.f
 	};
 	const float angleStep{ -10.f };
 
@@ -147,8 +147,8 @@ void CardManager::RecalculateCardPosition(int deletionIndex)
 	RecalculateCardIndex(deletionIndex);
 
 	const Vector2f posStep{
-		50.f,
-		10.f
+		30.f,
+		3.f
 	};
 	const float angleStep{ -10.f };
 

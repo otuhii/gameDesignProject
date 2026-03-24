@@ -3,7 +3,7 @@
 #include "Texture.h"
 #include <iostream>
 
-const Vector2f Card::m_CardDimensions{ 60.f, 100.f };
+const Vector2f Card::m_CardDimensions{ 40.f, 70.f };
 Texture* Card::m_CardDescriptions[static_cast<int>(CardType::typeCount)];
 
 int Card::m_HoveredCard{ -1 };
