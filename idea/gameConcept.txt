@@ -19,3 +19,10 @@ THINK ABOUT:
 TODO:
 	card mechanic
 	grid movement
+
+constantly listening to any data sent by the other user(just listen to the server)
+then after something was received update values and process these new values by outputting some on the screen
+
+
+
+make a polygons for cards and not a dumbass rects
