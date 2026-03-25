@@ -11,14 +11,14 @@ CardManager::CardManager(const Vector2f& drawPos)
 	};
 	const float angleStep{ -10.f };
 
-	Vector2f pos{};
+	Vector2f pos{ };
 	float rotationAngle{ 30.f };
 
 	int decreaseAfter{ m_CurrentCardNumber / 2 };
 
 	for (int index = 0; index < m_MaximumCardNumber; ++index)
 	{
-		m_pCards[index] = new Card{pos, rotationAngle};
+		m_pCards[index] = new Card{m_DrawPos+pos, rotationAngle};
 
 		if (index < decreaseAfter)
 		{
@@ -46,16 +46,19 @@ void CardManager::DrawCards() const
 {
 	for (int index = 0; index < m_MaximumCardNumber; ++index)
 	{
+		utils::SetColor(Color4f{ 0.f, 1.f, 0.f, 1.f });
+		utils::DrawPolygon(m_pCards[index]->GetCardBounds());
+
 		glPushMatrix();
 		{
 			if (Card::GetHoveredCard() != index)
 			{
 				Vector2f cardPos{ m_pCards[index]->GetCardPosition() };
 
-				glTranslatef(Card::GetCardDimensions().x * 0.5f, Card::GetCardDimensions().y * 0.5f, 0.f);
-				glTranslatef(m_DrawPos.x + cardPos.x, m_DrawPos.y + cardPos.y, 0.f);
+				//glTranslatef(Card::GetCardDimensions().x * 0.5f, Card::GetCardDimensions().y * 0.5f, 0.f);
+				glTranslatef(cardPos.x,cardPos.y, 0.f);
 				glRotatef(m_pCards[index]->GetRotationAngle(), 0.f, 0.f, 1.f);
-				glTranslatef(-Card::GetCardDimensions().x * 0.5f, -Card::GetCardDimensions().y * 0.5f, 0.f);
+				//glTranslatef(-Card::GetCardDimensions().x * 0.5f, -Card::GetCardDimensions().y * 0.5f, 0.f);
 
 				utils::SetColor(Color4f{ 1.f, 0.f, 0.f, 1.f });
 				utils::FillRect(Vector2f{ 0.f, 0.f }, Card::GetCardDimensions().x, Card::GetCardDimensions().y);
@@ -80,7 +83,7 @@ void CardManager::DrawCards() const
 						cardPos{ m_pCards[Card::GetHoveredCard()]->GetCardPosition() };
 
 					glTranslatef(Card::GetCardDimensions().x * 0.5f, Card::GetCardDimensions().y * 0.5f, 0.f);
-					glTranslatef(m_DrawPos.x + cardPos.x, m_DrawPos.y + cardPos.y + hoveredOffset, 0.f);
+					glTranslatef(cardPos.x, cardPos.y + hoveredOffset, 0.f);
 					glScalef(1.5f, 1.5f, 1.f);
 					glTranslatef(-Card::GetCardDimensions().x * 0.5f, -Card::GetCardDimensions().y * 0.5f, 0.f);
 
@@ -107,7 +110,7 @@ void CardManager::CardHoveringHandle(const Vector2f& mousePosition) const
 	{
 		if (m_pCards[index] != nullptr)
 		{
-			if (IsPointInCard(mousePosition, m_pCards[index]->GetCardPosition(), m_pCards[index]->GetRotationAngle()))
+			if (IsPointInCard(mousePosition, *m_pCards[index]))
 			{
 				Card::SetHoveredCard(index);
 				return;
@@ -133,27 +136,7 @@ void CardManager::DrawDescription(Card::CardType type) const
 }
 
 
-//SAT algo, something with rotation matrix, it works so idgaf
-//TODO maybe look into it later
-bool CardManager::IsPointInCard(const Vector2f& mousePos, const Vector2f& cardPos, float angle) const
+bool CardManager::IsPointInCard(const Vector2f& mousePos, const Card& card) const
 {
-
-	float 
-		dx{ mousePos.x - (m_DrawPos.x + cardPos.x) },
-		dy{ mousePos.y - (m_DrawPos.y + cardPos.y) };
-
-	float 
-		rad{ -angle * (static_cast<float>(M_PI) / 180.f) };
-
-	float 
-		localX{ dx * cosf(rad) - dy * sinf(rad) },
-		localY{ dx * sinf(rad) + dy * cosf(rad) };
-
-	float 
-		halfW{ Card::GetCardDimensions().x * 0.5f }, 
-		halfH{ Card::GetCardDimensions().y * 0.5f };
-
-	return (localX >= -halfW && localX <= halfW &&
-		localY >= -halfH && localY <= halfH);
+	return utils::IsPointInPolygon(mousePos, card.GetCardBounds());
 }
-////////////////////////////////////////////////////////////////////////

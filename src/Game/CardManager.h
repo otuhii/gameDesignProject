@@ -33,6 +33,6 @@ private:
 
 	void ApplyCardOnPlayer(Player* player);
 
-	bool IsPointInCard(const Vector2f& mousePos, const Vector2f& cardPos, float angle) const;
+	bool IsPointInCard(const Vector2f& mousePos, const Card* card) const;
 };
 

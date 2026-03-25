@@ -22,12 +22,12 @@ public:
 
 	void SetPosition(const Vector2f& newPos);
 	void SetRotationAngle(float angle);
-	
+	void SetBounds();
 
-	CardType				GetCardType()		const;
-	const Vector2f&			GetCardPosition()	const;
-	float					GetRotationAngle()	const;
-	Rectf					GetCardBounds()		const;	
+	CardType				     GetCardType()		const;
+	const Vector2f&			     GetCardPosition()	const;
+	float					     GetRotationAngle()	const;
+	const std::vector<Vector2f>& GetCardBounds()    const;	
 
 	static void				SetHoveredCard(int index);
 
@@ -40,6 +40,8 @@ private:
 	static int m_CardCount;
 
 	static Texture* m_CardDescriptions[static_cast<int>(CardType::typeCount)];
+
+	std::vector<Vector2f> m_RotatedBounds{ 4, Vector2f{} };
 
 	CardType m_Type;
 

@@ -2,6 +2,8 @@
 #include "Card.h"
 #include "Texture.h"
 
+#include "Matrix2x3.h"
+
 #include <iostream>
 
 const Vector2f Card::m_CardDimensions{ 60.f, 100.f };
@@ -18,6 +20,8 @@ Card::Card(const Vector2f& cardPos, float angle)
         InitializeDescriptions();
         std::cout << "DESCRIPTIONS INITIALIZED" << std::endl;
     }
+
+    SetBounds();
 
     m_CardCount++;
 }
@@ -44,6 +48,27 @@ void Card::SetRotationAngle(float angle)
     m_RotationAngle = angle;
 }
 
+void Card::SetBounds()
+{
+    std::vector<Vector2f> notRotatedBounds{
+        Vector2f{ 0, 0 },
+        Vector2f{ m_CardDimensions.x, 0},
+        Vector2f{ m_CardDimensions.x, m_CardDimensions.y},
+        Vector2f{0, m_CardDimensions.y} };
+
+    Matrix2x3
+        rotation{},
+        translation{},
+        transformation{};
+
+    rotation.SetAsRotate(m_RotationAngle);
+    translation.SetAsTranslate(m_Position);
+
+    transformation = translation * rotation;
+
+    m_RotatedBounds = transformation.Transform(notRotatedBounds);
+}
+
 Card::CardType Card::GetCardType() const
 {
     return m_Type;
@@ -59,14 +84,9 @@ float Card::GetRotationAngle() const
     return m_RotationAngle;
 }
 
-Rectf Card::GetCardBounds() const
+const std::vector<Vector2f>& Card::GetCardBounds() const
 {
-    return Rectf{
-        m_Position.x, 
-        m_Position.y,
-        m_CardDimensions.x,
-        m_CardDimensions.y
-    };
+    return m_RotatedBounds;
 }
 
 void Card::SetHoveredCard(int index)
